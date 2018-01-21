@@ -6,6 +6,8 @@ from django.urls import reverse
 from django.views import generic
 
 from .models import Choice, Question
+
+from django.utils import timezone
 # Create your views here.
 
 class IndexView(generic.ListView):
@@ -13,8 +15,14 @@ class IndexView(generic.ListView):
     context_object_name = 'latest_question_list'
 
     def get_queryset(self):
-        """Return the last five published questions."""
-        return Question.objects.order_by('-pub_date')[:5]
+        return Question.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
+    '''
+    Question.objects.filter(pub_date__lte=timezone.now()) returns a queryset containing Questions whose
+    pub_date is less than or equal to -that is, earlier than or equal to -timezone.now()
+    '''
+    #    """Return the last five published questions."""
+    #    return Question.objects.order_by('-pub_date')[:5]
+    # comment out on Jan 21st
 
     #latest_question_list = Question.objects.order_by('-pub_date')[:5]
     #template = loader.get_template('polls/index.html')
@@ -23,6 +31,8 @@ class IndexView(generic.ListView):
     #}
     #return HttpResponse(template.render(context, request))
 # we are changing to Generic views. A sense of Object Oriented.
+
+
 class DetailView(generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
