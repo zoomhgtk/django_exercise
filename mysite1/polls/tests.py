@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.test import TestCase
 
 from .models import Question
-from django.urls imoprt reverse
+from django.urls import reverse
 
 class QuestionModelTests(TestCase):
     def test_was_published_recently_with_future_question(self):
@@ -55,7 +55,7 @@ class QuestionIndexViewTests(TestCase):
         response = self.client.get(reverse('polls:index'))
         self.assertQuerysetEqual(
                 response.context['latest_question_list'],
-                ['<Question: Past question.>']
+                ['<Question: Past question>']
                 )
 
     def test_future_question(self):
@@ -88,3 +88,22 @@ class QuestionIndexViewTests(TestCase):
                 response.context['latest_question_list'],
                 ['<Question: Past question 2>', '<Question: Past question 1>']
                 )
+
+class QuestionDetailViewTests(TestCase):
+    def test_future_question(self):
+        '''
+        the detail view of a quesiton with a pub_date in the future returns a 404 code
+        '''
+        future_question = create_question(question_text='Future question', days=5)
+        url = reverse('polls:detail', args=(future_question.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_past_question(self):
+        '''
+        the detail view of a question with a pub_date in the past displays the question's test
+        '''
+        past_question = create_question(question_text='Past question', days=-5)
+        url = reverse('polls:detail', args=(past_question.id,))
+        response = self.client.get(url)
+        self.assertContains(response, past_question.question_text)
